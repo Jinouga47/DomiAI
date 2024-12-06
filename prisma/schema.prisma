@@ -12,99 +12,348 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-enum AccountType { //Will be used to check if the user is a landlord or tenant
-  LANDLORD
-  TENANT
-}
-enum PropertyType { //Will be used to check if the property is a flat or house
-  FLAT
-  HOUSE
-}
-enum TenancyType { //Will be used to check if the property is shared or sole
-  SHARED
-  SOLE
-}
-
-enum PaymentStatus { //Will be used by Landlords to check if their tenants have paid their rent
-  PAID
-  UNPAID
-}
-enum PaymentMethod { //Will be used by Landlords to check how their tenants pay their rent. May be removed in the future
-  BANK_TRANSFER
-  CARD
-  CASH
-}
-enum AccountStatus { //Will be used for landlords to check if their account is active via payment
-  ACTIVE
-  INACTIVE
-}
 
 model User {
-  id            String    @id @default(cuid())
-  firstName     String?
-  lastName      String?
-  email         String?   @unique
-  password      String?
-  phoneNumber   Int
-  accountType   AccountType   @default(TENANT)
-  emailVerified DateTime?
-  image         String?
-  tenants       User[]
-  sessions      Session[]
-  properties    Property[]
+  id                String      @id @default(uuid())
+  firstName         String
+  lastName          String
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  email             String      @unique
+  passwordHash      String
+  role              UserRole
+  status            UserStatus  @default(PENDING_VERIFICATION)
+  lastLogin         DateTime?
+  emailVerified     Boolean     @default(false)
+  verificationToken String?
+  resetToken        String?     @unique
+  resetTokenExpiry  DateTime?
+  twoFactorEnabled  Boolean     @default(false)
+  twoFactorSecret   String?
+  tenant            Tenant?
+  landlord          Landlord?
+  ticketResponses   TicketResponse[]
+
+  @@map("users")
+}
+
+model Landlord {
+  id                            String     @id @default(uuid())
+  createdAt                     DateTime   @default(now())
+  updatedAt                     DateTime   @updatedAt
+  userId                        String     @unique // Link to User table
+  firstName                     String
+  lastName                      String
+  phone                        String?
+  utrNumber                    String     @unique  // Unique Taxpayer Reference
+  gasSafetyCertificateExpiry   DateTime?
+  epcCertificateExpiry         DateTime?
+  electricalSafetyCertExpiry   DateTime?
+  depositProtectionSchemeId    String?
+  properties                   Property[]
+  documents                    Document[]
+  user                         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("landlords")
+}
+
+model Tenant {
+  id                    String     @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  userId                String     @unique // Link to User table
+  firstName             String
+  lastName              String
+  phone                 String?
+  dateOfBirth           DateTime
+  nationalInsuranceNo   String     @unique
+  rightToRentCheckDate  DateTime
+  rightToRentExpiry     DateTime?
+  employmentStatus      EmploymentStatus
+  annualIncome          Decimal?   @db.Decimal(10, 2)
+  referenceCheckStatus  ReferenceCheckStatus
+  tenancyAgreements     TenancyAgreement[]
+  maintenanceTickets    MaintenanceTicket[]
+  ticketComments        TicketComment[]
+  documents             Document[]
+  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tenants")
 }
 
 model Property {
-  id           String   @id @default(cuid())
-  title        String
-  addressLine1 String
-  addressLine2 String
-  city         String
-  county       String
-  postCode     String
-  bedrooms     Int
-  bathrooms    Int
-  propertyType PropertyType
-  tenancyType  TenancyType
-  description  String
-  owner        User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId      String
+  id               String     @id @default(uuid())
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  landlordId       String
+  addressLine1     String
+  addressLine2     String?
+  cityTown         String
+  county           String?
+  postcode         String
+  purchaseDate     DateTime?
+  propertyType     PropertyType
+  tenure           TenureType
+  councilTaxBand   String
+  epcRating        String
+  units            Unit[]
+  documents        Document[]
+  landlord         Landlord   @relation(fields: [landlordId], references: [id])
 
   @@map("properties")
 }
 
+model Unit {
+  id                    String     @id @default(uuid())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  propertyId            String
+  unitNumber            String?
+  squareMetres          Float?
+  bedrooms              Int
+  bathrooms             Int
+  baseRentPcm           Decimal    @db.Decimal(10, 2)
+  furnishedStatus       FurnishedStatus
+  hmoLicense            String?
+  councilTaxReference   String?
+  property              Property   @relation(fields: [propertyId], references: [id])
+  tenancyAgreements     TenancyAgreement[]
+  maintenanceTickets    MaintenanceTicket[]
+  documents             Document[]
 
-model Account {
-  id                String   @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?  @db.Text
-  access_token      String?  @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?  @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+  @@map("units")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model TenancyAgreement {
+  id                          String     @id @default(uuid())
+  createdAt                   DateTime   @default(now())
+  updatedAt                   DateTime   @updatedAt
+  unitId                      String
+  tenantId                    String?
+  tenancyType                 TenancyType
+  startDate                   DateTime
+  endDate                     DateTime
+  monthlyRent                 Decimal    @db.Decimal(10, 2)
+  depositAmount               Decimal    @db.Decimal(10, 2)
+  depositProtectionRef        String
+  breakClauseDate             DateTime?
+  noticePeriodDays           Int
+  status                      AgreementStatus
+  renewalStatus              RenewalStatus
+  unit                       Unit       @relation(fields: [unitId], references: [id])
+  tenant                     Tenant?    @relation(fields: [tenantId], references: [id])
+  rentPayments               RentPayment[]
+
+  @@map("tenancy_agreements")
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+model RentPayment {
+  id                  String     @id @default(uuid())
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  tenancyAgreementId  String
+  paymentDate         DateTime
+  amount              Decimal    @db.Decimal(10, 2)
+  paymentType         PaymentType
+  status              PaymentStatus
+  isLate              Boolean    @default(false)
+  referenceNumber     String?
+  tenancyAgreement    TenancyAgreement  @relation(fields: [tenancyAgreementId], references: [id])
 
-  @@unique([identifier, token])
+  @@map("rent_payments")
+}
+
+model MaintenanceTicket {
+  id                  String     @id @default(uuid())
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  unitId              String
+  tenantId            String
+  title               String
+  description         String
+  priority            TicketPriority
+  status              TicketStatus
+  isEmergency         Boolean    @default(false)
+  accessInstructions  String?
+  preferredContact    ContactMethod
+  availableDates      DateTime[]
+  unit                Unit       @relation(fields: [unitId], references: [id])
+  tenant              Tenant     @relation(fields: [tenantId], references: [id])
+  updates             TicketUpdate[]
+  comments            TicketComment[]
+  ticketResponses     TicketResponse[]
+
+  @@map("maintenance_tickets")
+}
+
+model TicketUpdate {
+  id                  String     @id @default(uuid())
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  ticketId            String
+  createdById         String
+  statusChange        TicketStatus
+  scheduledVisitDate  DateTime?
+  contractorDetails   String?
+  ticket              MaintenanceTicket  @relation(fields: [ticketId], references: [id])
+
+  @@map("ticket_updates")
+}
+
+model TicketComment {
+  id                  String     @id @default(uuid())
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  ticketId            String
+  userId              String
+  comment             String
+  isInternal          Boolean    @default(false)
+  followUpRequired    Boolean    @default(false)
+  ticket              MaintenanceTicket  @relation(fields: [ticketId], references: [id])
+  tenant              Tenant     @relation(fields: [userId], references: [id])
+
+  @@map("ticket_comments")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  url         String
+  fileName    String
+  fileType    String
+  fileSize    Int
+  uploadedAt  DateTime @default(now())
+  userId      String
+  tenantId    String?
+  landlordId  String?
+  propertyId  String?
+  unitId      String?
+  category    DocumentCategory
+  description String?
+  isArchived  Boolean @default(false)
+  
+  tenant    Tenant?   @relation(fields: [tenantId], references: [id])
+  landlord  Landlord? @relation(fields: [landlordId], references: [id])
+  property  Property? @relation(fields: [propertyId], references: [id])
+  unit      Unit?     @relation(fields: [unitId], references: [id])
+
+  @@map("documents")
+}
+
+model TicketResponse {
+  id          String      @id @default(cuid())
+  message     String
+  createdAt   DateTime    @default(now())
+  isLandlord  Boolean
+  maintenanceTicket MaintenanceTicket @relation(fields: [ticketId], references: [id])
+  ticketId    String
+  author      User        @relation(fields: [authorId], references: [id])
+  authorId    String
+
+  @@map("ticket_responses")
+}
+
+enum UserRole {
+  ADMIN
+  LANDLORD
+  TENANT
+  STAFF
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum PropertyType {
+  DETACHED
+  SEMI_DETACHED
+  TERRACED
+  FLAT
+}
+
+enum TenureType {
+  FREEHOLD
+  LEASEHOLD
+}
+
+enum FurnishedStatus {
+  FURNISHED
+  PART_FURNISHED
+  UNFURNISHED
+}
+
+enum EmploymentStatus {
+  EMPLOYED
+  SELF_EMPLOYED
+  RETIRED
+  STUDENT
+  UNEMPLOYED
+}
+
+enum ReferenceCheckStatus {
+  PENDING
+  PASSED
+  FAILED
+  IN_PROGRESS
+}
+
+enum TenancyType {
+  AST
+  ROOM_ONLY
+  HMO
+}
+
+enum AgreementStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RenewalStatus {
+  NOT_RENEWING
+  PENDING_RENEWAL
+  RENEWED
+}
+
+enum PaymentType {
+  BANK_TRANSFER
+  STANDING_ORDER
+  DIRECT_DEBIT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum TicketPriority {
+  ROUTINE
+  URGENT
+  EMERGENCY
+}
+
+enum TicketStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum ContactMethod {
+  EMAIL
+  PHONE
+  SMS
+}
+
+enum DocumentCategory {
+  LEASE_AGREEMENT
+  PROPERTY_INSPECTION
+  MAINTENANCE_REPORT
+  TENANT_ID
+  PROOF_OF_ADDRESS
+  INSURANCE
+  CERTIFICATE
+  OTHER
 }

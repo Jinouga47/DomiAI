@@ -1,17 +1,36 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { createProperty, getLandlordProperties } from '@/lib/db';
 import prisma from '@/lib/prisma';
 
 export async function GET(req: Request) {
   try {
+    // Get the authenticated session
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
+      console.log('Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const properties = await getLandlordProperties(session.user.id);
+    // Find the landlord record for this user
+    const landlord = await prisma.landlord.findFirst({
+      where: { userId: session.user.id }
+    });
+
+    if (!landlord) {
+      console.log('No landlord profile found for user:', session.user.id);
+      return NextResponse.json({ error: 'Landlord profile not found' }, { status: 404 });
+    }
+
+    // Get properties for this landlord
+    const properties = await prisma.property.findMany({
+      where: { landlordId: landlord.id },
+      include: {
+        units: true // Include related units
+      }
+    });
+    
+    console.log(`Found ${properties.length} properties for landlord:`, landlord.id);
     return NextResponse.json({ properties });
   } catch (error) {
     console.error('Properties fetch error:', error);
@@ -25,19 +44,70 @@ export async function GET(req: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
+    
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const data = await request.json();
-    const property = await createProperty(session.user.id, data);
+    // Get the request body
+    const body = await request.json();
+    console.log('Received property data:', body);
+
+    // Validate the body has required fields
+    if (!body || !body.addressLine1 || !body.cityTown || !body.postcode) {
+      return new NextResponse('Missing required fields', { status: 400 });
+    }
+
+    // Get the landlord associated with the user
+    const landlord = await prisma.landlord.findUnique({
+      where: { userId: session.user.id }
+    });
+
+    if (!landlord) {
+      return new NextResponse('Landlord not found', { status: 404 });
+    }
+
+    // Extract units from the body
+    const { units, ...propertyData } = body;
+    console.log('Separated property data:', { propertyData, units });
+
+    // Create the property with its units
+    const property = await prisma.property.create({
+      data: {
+        landlordId: landlord.id,
+        addressLine1: propertyData.addressLine1,
+        addressLine2: propertyData.addressLine2,
+        cityTown: propertyData.cityTown,
+        county: propertyData.county,
+        postcode: propertyData.postcode,
+        purchaseDate: propertyData.purchaseDate ? new Date(propertyData.purchaseDate) : null,
+        propertyType: propertyData.propertyType,
+        tenure: propertyData.tenure,
+        councilTaxBand: propertyData.councilTaxBand,
+        epcRating: propertyData.epcRating,
+        units: {
+          create: units.map((unit: any) => ({
+            unitNumber: unit.unitNumber || null,
+            squareMetres: unit.squareMetres ? Number(unit.squareMetres) : null,
+            bedrooms: Number(unit.bedrooms),
+            bathrooms: Number(unit.bathrooms),
+            baseRentPcm: Number(unit.baseRentPcm),
+            furnishedStatus: unit.furnishedStatus,
+            hmoLicense: unit.hmoLicense || null,
+            councilTaxReference: unit.councilTaxReference || null,
+          }))
+        }
+      },
+      include: {
+        units: true
+      }
+    });
+
+    console.log('Created property with units:', property);
     return NextResponse.json(property);
   } catch (error) {
-    console.error('Failed to create property:', error);
-    return NextResponse.json(
-      { error: 'Failed to create property' },
-      { status: 500 }
-    );
+    console.error('Error creating property:', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -50,7 +120,7 @@ export async function HEAD(req: Request) {
     }
     
     const count = await prisma.property.count({
-      where: { ownerId: session.user.id }
+      where: { landlordId: session.user.id }
     });
     
     return new Response('', {

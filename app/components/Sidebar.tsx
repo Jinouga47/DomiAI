@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -45,6 +46,18 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             </svg>
             <span className="sidebar-text">Properties</span>
           </Link>
+
+          <button 
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className={`sidebar-link ${isCollapsed ? 'sidebar-link-collapsed' : ''}`}
+            title="Logout"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="sidebar-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1h-3v2h2v10H4V5h2V3H3z" />
+              <path d="M11 3v2h3v4h2V4a1 1 0 00-1-1h-4z" />
+            </svg>
+            <span className="sidebar-text">Logout</span>
+          </button>
         </div>
       </div>
       <div className={`sidebar-overlay ${isCollapsed ? 'hidden' : ''}`} onClick={() => setIsCollapsed(true)} />

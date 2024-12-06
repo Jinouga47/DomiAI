@@ -7,13 +7,12 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    /* --foreground: #ededed; */
-    --foreground: #000000;
+    --foreground: #ededed;
   }
-}
+} */
 
 body {
   color: var(--foreground);
@@ -28,26 +27,35 @@ body {
   width: calc(100% - 64px);
   transition: margin-left 0.3s ease, width 0.3s ease;
   position: relative;
+  overflow-x: hidden;
 }
 
 .dashboard-container.sidebar-collapsed {
-  margin-left: 64px;
-  width: calc(100% - 64px);
+  margin-left: 0;
+  width: 100%;
 }
 
 .dashboard-header {
   background-color: white;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   position: relative;
-  left: -64px;
-  width: 100vw;
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .header-content {
   max-width: 80rem;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
-  margin-left: calc(64px + 1.5rem);
+  padding: 1.5rem 1.5rem 1.5rem 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-button {
+  margin: 1.5rem;
+  display: inline-block;
 }
 
 .header-title {
@@ -59,7 +67,7 @@ body {
 .main-content {
   max-width: 80rem;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1.5rem 1.5rem 0;
 }
 
 .content-wrapper {
@@ -67,11 +75,15 @@ body {
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
   padding: 1.5rem;
+  margin: 0;
 }
 
 .card-grid {
   display: grid;
   gap: 1.5rem;
+  padding: 0.5rem;
+  margin: 0 auto;
+  max-width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -87,27 +99,32 @@ body {
 }
 
 .welcome-card {
-  background-color: rgb(239 246 255);
+  background-color: rgb(148, 188, 240);
   padding: 1.5rem;
   border-radius: 0.5rem;
+  color: #1a1a1a !important;
 }
 
 .stats-card {
-  background-color: rgb(240 253 244);
+  background-color: rgb(184, 241, 201);
   padding: 1.5rem;
   border-radius: 0.5rem;
+  width: 100%;
+  color: #1a1a1a !important;
 }
 
 .activity-card {
-  background-color: rgb(245 243 255);
+  background-color: rgb(193, 182, 245);
   padding: 1.5rem;
   border-radius: 0.5rem;
+  color: #1a1a1a !important;
 }
 
 .card-title {
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: #1a1a1a !important;
 }
 
 .loading-container {
@@ -359,4 +376,821 @@ body {
 .dashboard-overlay-visible {
   background-color: rgba(0, 0, 0, 0.3);
   pointer-events: auto;
+}
+
+/* Property Listings Styles */
+.property-banner {
+  padding: 4rem 3rem;  /* Further increased padding */
+  margin-bottom: 3rem; /* Increased bottom margin */
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.property-grid {
+  padding: 3rem;      /* Increased padding */
+  gap: 3rem;          /* Increased gap between cards */
+}
+
+.property-card {
+  padding: 3rem;      /* Increased padding */
+  margin: 1.5rem 0;   /* Increased vertical margin */
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.property-card:hover {
+  transform: translateY(-4px);
+}
+
+.property-card-content {
+  padding: 2rem 0;    /* Increased vertical padding */
+}
+
+.property-card-title {
+  margin-bottom: 2rem;  /* Increased spacing below title */
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.property-card-details {
+  padding: 1rem 0;    /* Increased vertical padding */
+  line-height: 1.8;   /* Added more line height for better readability */
+}
+
+.property-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;  /* Slightly reduced gap for three buttons */
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;  /* Allow wrapping on smaller screens */
+}
+
+/* Button Styles */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.action-button:hover {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15), 0 3px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin-top: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.welcome-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: #3b82f6;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin-top: 1rem;
+}
+
+.action-link:hover {
+  color: #2563eb;
+  transform: translateX(4px);
+}
+
+.add-first-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.add-first-link:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15), 0 3px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Properties List Styling */
+.properties-list {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.property-preview-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.property-preview {
+  padding: 2rem;
+  margin: 1rem 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  transition: transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.property-preview:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.property-details {
+  padding: 1rem 0;
+  line-height: 1.8;
+}
+
+.property-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.property-actions {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Tenant List Styling */
+.tenant-list {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.tenant-preview-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tenant-preview {
+  padding: 2rem;
+  margin: 1rem 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  transition: transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tenant-preview:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tenant-details {
+  padding: 1rem 0;
+  line-height: 1.8;
+}
+
+.tenant-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.tenant-actions {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tenant-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.tenant-stat-card {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.tenant-stat-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tenant-stat-label {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+}
+
+.tenant-stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* Loading state styles */
+.card-loading {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.card-content {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease;
+  color: #1a1a1a !important;
+}
+
+.card-content.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  border-top-color: #1a1a1a;
+  animation: spin 1s linear infinite;
+}
+
+.lease-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  padding: 1rem;
+}
+
+.lease-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.lease-card:hover {
+  transform: translateY(-2px);
+}
+
+.lease-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.lease-details {
+  margin-bottom: 1rem;
+}
+
+.tenant-details, .tenant-assignment {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.tenant-assignment select {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.property-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.property-card-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.edit-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #4f46e5;
+  color: white;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+.lease-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #10b981;  /* Green color for distinction */
+  color: white;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.lease-button:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.lease-edit-form {
+  padding: 1rem 0;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.maintenance-list {
+  margin-bottom: 1.5rem;
+}
+
+.maintenance-item {
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+}
+
+.maintenance-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.status-badge, .priority-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.status-new { background-color: #e5e7eb; }
+.status-in_progress { background-color: #93c5fd; }
+.status-resolved { background-color: #86efac; }
+.status-closed { background-color: #d1d5db; }
+
+.priority-routine { background-color: #e5e7eb; }
+.priority-urgent { background-color: #fde047; }
+.priority-emergency { background-color: #fca5a5; }
+
+.ticket-date {
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.units-section {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 2rem;
+}
+
+.unit-form {
+  background: rgba(0, 0, 0, 0.02);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.unit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.unit-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+.remove-unit-button {
+  color: #ef4444;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ef4444;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.remove-unit-button:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.add-unit-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #4f46e5;
+  color: white;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.add-unit-button:hover {
+  background: #4338ca;
+}
+
+.remove-tenant-button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.remove-tenant-button:hover {
+  background-color: #dc2626;
+}
+
+.tenant-assignment {
+  position: relative;
+}
+
+.tenant-assignment .property-preview {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.tenant-assignment .property-preview:last-child {
+  border-bottom: none;
+}
+
+.tenant-assignment .property-preview:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.maintenance-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.maintenance-item:hover {
+  transform: translateY(-2px);
+}
+
+.maintenance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.ticket-location {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.ticket-description {
+  margin: 0.5rem 0;
+  color: #1a1a1a;
+}
+
+.maintenance-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.status-badge,
+.priority-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.tenant-name {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.ticket-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* Status badge colors */
+.status-badge.status-new { background-color: #93c5fd; color: #1e3a8a; }
+.status-badge.status-in_progress { background-color: #fde047; color: #854d0e; }
+.status-badge.status-resolved { background-color: #86efac; color: #14532d; }
+.status-badge.status-closed { background-color: #e5e7eb; color: #374151; }
+
+/* Priority badge colors */
+.priority-badge.priority-routine { background-color: #e5e7eb; color: #374151; }
+.priority-badge.priority-urgent { background-color: #fde047; color: #854d0e; }
+.priority-badge.priority-emergency { background-color: #fca5a5; color: #991b1b; }
+
+.maintenance-list {
+  margin-top: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar styling */
+.maintenance-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.maintenance-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.maintenance-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.maintenance-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Ticket Grid Layout */
+.tickets-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  padding: 1rem;
+}
+
+.ticket-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.ticket-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section {
+  margin-bottom: 1.5rem;
+  max-width: 200px;
+}
+
+/* Ticket Detail Card */
+.ticket-detail-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-meta {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.responses-section {
+  margin-top: 2rem;
+}
+
+.response-item {
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.landlord-response {
+  background: rgb(148, 188, 240, 0.2);
+  margin-left: 2rem;
+}
+
+.tenant-response {
+  background: rgb(184, 241, 201, 0.2);
+  margin-right: 2rem;
+}
+
+.response-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.response-message {
+  white-space: pre-wrap;
+}
+
+.response-form {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.status-select {
+  margin-bottom: 1rem;
+}
+
+.status-select label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.response-count {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Tenant Grid Layout */
+.tenant-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  padding: 1rem;
+}
+
+.tenant-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tenant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tenant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tenant-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.tenant-details {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.tenant-email {
+  margin-bottom: 0.5rem;
+}
+
+.tenant-property, .tenant-rent {
+  color: #6b7280;
+}
+
+/* Tenant Detail Card */
+.tenant-detail-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.detail-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.detail-section h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Replace or add to existing maintenance list styles */
+.maintenance-list-static {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Update maintenance item styles */
+.maintenance-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.maintenance-item:hover {
+  transform: translateY(-2px);
 }

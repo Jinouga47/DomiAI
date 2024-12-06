@@ -14,6 +14,7 @@ import type { JWT } from "next-auth/jwt"
 import type { Session } from "next-auth"
 // Import the DefaultSession type from `next-auth`
 import type { DefaultSession } from "next-auth"
+import EmailProvider from "next-auth/providers/email"
 
 // Initialize Prisma client
 const prisma = new PrismaClient()
@@ -22,7 +23,8 @@ const prisma = new PrismaClient()
 declare module "next-auth" {
   interface Session {
     user: {
-      id: string
+      id: string;
+      role?: string;
     } & DefaultSession["user"]
   }
 }
@@ -44,50 +46,53 @@ export const authOptions = {
       
       // The authorize function is called when user tries to log in
       async authorize(credentials) {
-        // Check if email and password were provided
         if (!credentials?.email || !credentials?.password) {
-          console.log('Missing credentials');
           throw new Error("Missing credentials");
         }
 
-        // Look up user in database by email
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
         });
-        console.log('User lookup completed');
 
-        // If no user found or user has no password, throw error
-        if (!user || !user.password) {
-          console.log('No user found or invalid password');
-          throw new Error("No user found");
+        if (!user || !user.passwordHash) {
+          throw new Error("Invalid credentials");
         }
 
-        // Compare provided password with hashed password in database
-        const isPasswordValid = await compare(credentials.password, user.password);
-        console.log('Password validation completed');
+        // Check if email is verified
+        if (!user.emailVerified) {
+          throw new Error("Please verify your email address before logging in");
+        }
 
-        // If password doesn't match, throw error
+        const isPasswordValid = await compare(credentials.password, user.passwordHash);
         if (!isPasswordValid) {
-          console.log('Invalid password');
-          throw new Error("Invalid password");
+          throw new Error("Invalid credentials");
         }
 
-        // If everything is valid, log the successful login
-        console.info(`Login successful - Email: ${user.email}, Time: ${new Date().toISOString()}`);
-
-        // Return user object
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          role: user.role
         };
       }
+    }),
+    EmailProvider({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: Number(process.env.EMAIL_SERVER_PORT),
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD
+        }
+      },
+      from: process.env.EMAIL_FROM,
     }),
   ],
 
   // Session configuration
   session: {
-    strategy: "jwt" as const, // Use JSON Web Tokens for session handling
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
 
   // Custom pages configuration
@@ -111,15 +116,26 @@ export const authOptions = {
       // Default redirect to dashboard
       return baseUrl + "/dashboard"
     },
-    async jwt({ token, user }: { token: JWT; user: any }) {
+    async jwt({ token, user, account }: { 
+      token: JWT; 
+      user?: any; 
+      account?: any; 
+      trigger?: "signIn" | "signUp" | "update"; 
+    }) {
+      if (account?.remember === false) {
+        token.maxAge = 8 * 60 * 60;
+      }
       if (user) {
         token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
+        // Add user ID and role to session
         session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     }

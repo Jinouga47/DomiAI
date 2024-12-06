@@ -8,18 +8,30 @@ import { useSession } from 'next-auth/react';
 
 interface Property {
   id: string;
-  title: string;
-  location: string;
-  price: number;
+  landlordId: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  cityTown: string;
+  county?: string | null;
+  postcode: string;
+  purchaseDate?: Date | null;
+  propertyType: 'DETACHED' | 'SEMI_DETACHED' | 'TERRACED' | 'FLAT';
+  tenure: 'FREEHOLD' | 'LEASEHOLD';
+  councilTaxBand: string;
+  epcRating: string;
+  units?: Unit[];
+}
+
+interface Unit {
+  id: string;
+  unitNumber?: string | null;
+  squareMetres?: number | null;
   bedrooms: number;
   bathrooms: number;
-  propertyType: string;
-  description: string;
-  ownerId: string;
-  owner: {
-    name: string | null;
-    email: string;
-  };
+  baseRentPcm: number;
+  furnishedStatus: 'FURNISHED' | 'PART_FURNISHED' | 'UNFURNISHED';
+  hmoLicense?: string | null;
+  councilTaxReference?: string | null;
 }
 
 export default function PropertyDetailPage({ 
@@ -64,8 +76,8 @@ export default function PropertyDetailPage({
 
   useEffect(() => {
     if (property && session?.user?.id) {
-      setIsOwner(property.ownerId === session.user.id);
-      console.log('Setting isOwner:', property.ownerId === session.user.id);
+      setIsOwner(property.landlordId === session.user.id);
+      console.log('Setting isOwner:', property.landlordId === session.user.id);
     }
   }, [property, session]);
 
@@ -124,33 +136,86 @@ export default function PropertyDetailPage({
 
   return (
     <DashboardLayout>
+      <button 
+        onClick={() => router.back()} 
+        className="back-button"
+      >
+        ← Back
+      </button>
+
       <div className="welcome-card">
-        <h1 className="card-title">{property.title}</h1>
+        {/* <h1 className="card-title">{property.title}</h1> */}
+        <h1 className="card-title">Property Details</h1>
         
         <div className="space-y-4">
+          {/* Main Property Details */}
           <div className="stats-card">
-            <h2 className="card-title">Details</h2>
-            <p>Location: {property.location}</p>
-            {/* <p>Price: ${property.price.toLocaleString()}</p> */}
-            <p>{property.bedrooms} bedrooms • {property.bathrooms} bathrooms</p>
-            <p>Type: {property.propertyType}</p>
+            <h2 className="card-title">Property Overview</h2>
+            <div className="property-details-grid">
+              <div className="detail-group">
+                <h3 className="detail-title">Location</h3>
+                <div className="property-address">
+                  <p>{property.addressLine1}</p>
+                  {property.addressLine2 && <p>{property.addressLine2}</p>}
+                  <p>{property.cityTown}</p>
+                  {property.county && <p>{property.county}</p>}
+                  <p>{property.postcode}</p>
+                </div>
+              </div>
+              
+              <div className="detail-group">
+                <h3 className="detail-title">Property Type</h3>
+                <p>{property.propertyType.replace('_', ' ')}</p>
+                <p>Tenure: {property.tenure}</p>
+              </div>
+
+              <div className="detail-group">
+                <h3 className="detail-title">Property Details</h3>
+                <p>Council Tax Band: {property.councilTaxBand}</p>
+                <p>EPC Rating: {property.epcRating}</p>
+                {property.purchaseDate && (
+                  <p>Purchase Date: {new Date(property.purchaseDate).toLocaleDateString()}</p>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="activity-card">
-            <h2 className="card-title">Description</h2>
-            <p>{property.description}</p>
-          </div>
+          {/* Units Information */}
+          {property.units && property.units.length > 0 && (
+            <div className="activity-card">
+              <h2 className="card-title">Units</h2>
+              <div className="units-grid">
+                {property.units.map((unit, index) => (
+                  <div key={unit.id} className="unit-card">
+                    <h3 className="detail-title">
+                      {unit.unitNumber ? `Unit ${unit.unitNumber}` : `Unit ${index + 1}`}
+                    </h3>
+                    <div className="unit-details">
+                      <p>Bedrooms: {unit.bedrooms}</p>
+                      <p>Bathrooms: {unit.bathrooms}</p>
+                      {unit.squareMetres && <p>Size: {unit.squareMetres}m²</p>}
+                      <p>Rent PCM: £{unit.baseRentPcm.toLocaleString()}</p>
+                      <p>Status: {unit.furnishedStatus.replace('_', ' ')}</p>
+                      {unit.hmoLicense && <p>HMO License: {unit.hmoLicense}</p>}
+                      {unit.councilTaxReference && <p>Council Tax Ref: {unit.councilTaxReference}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
+          {/* Owner Actions */}
           {isOwner && (
-            <div className="flex gap-4 mt-4">
+            <div className="button-group">
               <Link 
                 href={`/properties/edit/${property.id}`}
-                className="auth-button flex-1 text-center"
+                className="auth-button"
               >
                 Edit Property
               </Link>
               <button 
-                className="auth-switch flex-1"
+                className="auth-switch"
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
