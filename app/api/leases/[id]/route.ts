@@ -37,4 +37,28 @@ export async function PUT(
       { status: 500 }
     );
   }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await prisma.tenancyAgreement.delete({
+      where: { id: params.id }
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error('Failed to delete lease:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete lease' },
+      { status: 500 }
+    );
+  }
 } 

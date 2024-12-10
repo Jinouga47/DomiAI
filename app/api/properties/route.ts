@@ -3,39 +3,38 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    // Get the authenticated session
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      console.log('Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Find the landlord record for this user
+    // Find the landlord record
     const landlord = await prisma.landlord.findFirst({
       where: { userId: session.user.id }
     });
 
     if (!landlord) {
-      console.log('No landlord profile found for user:', session.user.id);
-      return NextResponse.json({ error: 'Landlord profile not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Landlord not found' }, { status: 404 });
     }
 
     // Get properties for this landlord
     const properties = await prisma.property.findMany({
       where: { landlordId: landlord.id },
       include: {
-        units: true // Include related units
+        units: true
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
-    
-    console.log(`Found ${properties.length} properties for landlord:`, landlord.id);
+
     return NextResponse.json({ properties });
   } catch (error) {
-    console.error('Properties fetch error:', error);
+    console.error('Error fetching properties:', error);
     return NextResponse.json(
-      { message: 'Error fetching properties' },
+      { error: 'Failed to fetch properties' },
       { status: 500 }
     );
   }

@@ -115,22 +115,22 @@ export default function PropertyLeaseManagementPage({ params }: { params: Promis
     }
   };
 
-  const assignTenantToLease = async (leaseId: string, tenantId: string | null) => {
+  const deleteLease = async (leaseId: string) => {
+    if (!confirm('Are you sure you want to delete this lease? This action cannot be undone.')) {
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/leases/${leaseId}/assign`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ tenantId }),
+      const response = await fetch(`/api/leases/${leaseId}`, {
+        method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to assign tenant');
+      if (!response.ok) throw new Error('Failed to delete lease');
 
-      // Refresh leases after assignment
+      // Refresh leases after deletion
       fetchPropertyLeases();
     } catch (error) {
-      setError('Failed to assign tenant to lease');
+      setError('Failed to delete lease');
     }
   };
 
@@ -226,63 +226,21 @@ export default function PropertyLeaseManagementPage({ params }: { params: Promis
                     <p>Status: {lease.status}</p>
                   </div>
 
-                  {lease.tenant ? (
-                    <div className="tenant-details">
-                      <h4>Assigned Tenant</h4>
-                      <p>{lease.tenant.firstName} {lease.tenant.lastName}</p>
-                      <p>{lease.tenant.email}</p>
-                      <button
-                        onClick={() => assignTenantToLease(lease.id, null)}
-                        className="remove-tenant-button"
-                      >
-                        Remove Tenant
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="tenant-assignment">
-                      <h4>Assign Tenant</h4>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          className="auth-input"
-                          placeholder="Search tenant by name or email"
-                          value={tenantSearch}
-                          onChange={(e) => {
-                            setTenantSearch(e.target.value);
-                            searchTenants(e.target.value);
-                          }}
-                        />
-                        
-                        {isSearching && (
-                          <div className="absolute right-3 top-3">
-                            <div className="card-spinner w-4 h-4" />
-                          </div>
-                        )}
-
-                        {availableTenants.length > 0 && tenantSearch.length >= 2 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg">
-                            {availableTenants.map(tenant => (
-                              <div
-                                key={tenant.id}
-                                className="property-preview cursor-pointer"
-                                onClick={() => {
-                                  assignTenantToLease(lease.id, tenant.id);
-                                  setTenantSearch('');
-                                }}
-                              >
-                                <div className="property-details">
-                                  <p className="font-medium">
-                                    {tenant.firstName} {tenant.lastName}
-                                  </p>
-                                  <p className="text-sm text-gray-500">{tenant.email}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  <div className="tenant-details">
+                    <h4>Tenant</h4>
+                    {lease.tenant && (
+                      <>
+                        <p>{lease.tenant.firstName} {lease.tenant.lastName}</p>
+                        <p>{lease.tenant.email}</p>
+                      </>
+                    )}
+                    <button
+                      onClick={() => deleteLease(lease.id)}
+                      className="remove-tenant-button mt-4"
+                    >
+                      Delete Lease
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

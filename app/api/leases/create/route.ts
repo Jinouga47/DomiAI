@@ -13,35 +13,36 @@ export async function POST(request: Request) {
 
     const data = await request.json();
 
-    // Validate required fields
-    if (!data.unitId || !data.startDate || !data.endDate || !data.monthlyRent) {
+    // Validate required fields including tenantId
+    if (!data.unitId || !data.startDate || !data.endDate || !data.monthlyRent || !data.tenantId) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields (including tenant)' },
         { status: 400 }
       );
     }
 
-    // Create the lease
+    // Create the lease with tenant
     const lease = await prisma.tenancyAgreement.create({
       data: {
         unit: {
-          connect: { id: data.unitId }  // Connect to existing unit
+          connect: { id: data.unitId }
         },
         tenant: {
-          connect: undefined
+          connect: { id: data.tenantId }  // Required tenant connection
         },
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
         monthlyRent: data.monthlyRent,
         depositAmount: data.depositAmount,
-        status: AgreementStatus.INACTIVE,
+        status: AgreementStatus.ACTIVE,  // Set as ACTIVE since tenant is assigned
         tenancyType: TenancyType.AST,
         depositProtectionRef: '',
         noticePeriodDays: 30,
         renewalStatus: RenewalStatus.PENDING_RENEWAL
       },
       include: {
-        unit: true
+        unit: true,
+        tenant: true
       }
     });
 
